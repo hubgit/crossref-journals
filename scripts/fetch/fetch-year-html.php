@@ -4,7 +4,6 @@ $year = 2012;
 
 define('INPUT_DIRECTORY', __DIR__ . '/../../data/original/crossref-year/' . $year . '/');
 define('OUTPUT_DIRECTORY', __DIR__ . '/../../data/original/crossref-year-html/' . $year . '/');
-define('OUTPUT_FILE', __DIR__ . '/../../data/original/articles.csv');
 
 if (!file_exists(OUTPUT_DIRECTORY)) {
 	mkdir(OUTPUT_DIRECTORY, 0777, true);

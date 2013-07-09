@@ -22,7 +22,7 @@ curl_setopt($curl, CURLOPT_TIMEOUT, 60);
 
 $input = fopen(INPUT_FILE, 'r');
 
-while (($line = fgetcsv($input, null, "\t")) !== false) {
+while (($line = fgetcsv($input)) !== false) {
 	print_r($line);
 	list($set, $setName) = $line;
 

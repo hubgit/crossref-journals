@@ -10,7 +10,7 @@ if (!file_exists(OUTPUT_DIRECTORY)) {
 	mkdir(OUTPUT_DIRECTORY, 0777, true);
 }
 
-$output = fopen(OUTPUT_DIRECTORY . 'crossref-oai-sets.tsv', 'w');
+$output = fopen(OUTPUT_DIRECTORY . 'crossref-oai-sets.csv', 'w');
 
 $curl = curl_init();
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -52,7 +52,7 @@ do {
 			'name' => $xpath->query('oai:setName', $node)->item(0)->textContent,
 		);
 
-		fputcsv($output, $data, "\t");
+		fputcsv($output, $data);
 	}
 
 	// REST: rel="next" Link header for pagination

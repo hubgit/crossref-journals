@@ -28,7 +28,14 @@ while (($line = fgetcsv($input)) !== false) {
 	}
 
 	$issn = $matches[1] . '-' . $matches[2];
-	$output = fopen(OUTPUT_DIRECTORY . $issn . '.csv', 'w');
+
+	$file = OUTPUT_DIRECTORY . $issn . '.csv';
+
+	if (file_exists($file)) {
+		continue;
+	}
+
+	$output = fopen($file, 'w');
 
 	$params = array(
 		'q' => $issn,
