@@ -46,7 +46,8 @@ foreach ($files as $file) {
 		$report = $dir . '/' . base64_encode($doi) . '.json';
 		$output = $dir . '/' . base64_encode($doi) . '.html.gz';
 
-		if (file_exists($report)) {
+		//if (file_exists($report)) {
+		if (file_exists($report) && file_exists($output) && filesize($output)) {
 			continue;
 		}
 
@@ -80,3 +81,6 @@ foreach ($files as $file) {
 		}
 	}
 }
+
+curl_close();
+
