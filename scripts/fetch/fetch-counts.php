@@ -9,8 +9,6 @@ fgetcsv($input); // header row
 $output = fopen(OUTPUT_FILE, 'w');
 fputcsv($output, array('ISSN', 'DOIs (total)', 'DOIs (2012)', 'Journal', 'Publisher'));
 
-//$context = stream_context_create(array('http' => array('timeout' => 10)));
-
 while (($line = fgetcsv($input)) !== false) {
 	list($title, $publisher, $subjects, $issns) = $line;
 
@@ -26,8 +24,8 @@ while (($line = fgetcsv($input)) !== false) {
 		'issn' => implode('|', $issns),
 		'dois-total' => 0,
 		'dois-2012' => 0,
-		'title' => $title,
-		'publisher' => $publisher,
+		'title' => trim($title),
+		'publisher' => trim($publisher),
 	);
 
 	foreach ($issns as $issn) {
@@ -39,7 +37,7 @@ while (($line = fgetcsv($input)) !== false) {
 }
 
 function validate_issn($issn) {
-	if (preg_match('/^([0-9]{4})-?([0-9X]{4})$/', $issn, $matches)) {
+	if (preg_match('/^([0-9]{4})-?([0-9X]{4})$/', trim($issn), $matches)) {
 		return $matches[1] . '-' . $matches[2];
 	}
 }
@@ -56,8 +54,14 @@ function crossref_count($issn, $year = null) {
 	$url = 'http://search.labs.crossref.org/dois?' . http_build_query($params);
 	print "$url\n";
 
-	//$result = json_decode(file_get_contents($url, false, $context));
-	$result = json_decode(file_get_contents($url));
+	$context = stream_context_create(array('http' => array('timeout' => 10)));
+	$result = json_decode(file_get_contents($url, false, $context));
+	//$result = json_decode(file_get_contents($url));
+
+	if (!isset($result->totalResults)) {
+		$message = sprintf('%s: No totalResults for %s (%d)', date(DATE_ATOM), $issn, $year);
+		file_put_contents('counts.log', $message, FILE_APPEND);
+	}
 
 	return $result->totalResults;
 }
