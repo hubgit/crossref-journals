@@ -19,6 +19,7 @@ $curl = curl_init();
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($curl, CURLOPT_ENCODING, 'gzip,deflate');
 curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
 
 $input = fopen(INPUT_FILE, 'r');
 
