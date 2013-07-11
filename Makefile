@@ -13,6 +13,9 @@ $(datadir)/crossref-oai-sets.csv: $(datadir)/crossref-titles.csv
 
 $(datadir)/crossref-counts.csv: $(datadir)/crossref-titles.csv
 	php scripts/fetch/fetch-year.php
+	
+$(datadir)/../parsed/crossref-counts-clean.csv: $(datadir)/crossref-counts.csv
+	php scripts/parse/clean-counts.php
 
 oai: $(datadir)/crossref-oai-sets.csv
 	php scripts/fetch/fetch-all-oai.php
