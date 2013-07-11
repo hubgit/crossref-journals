@@ -10,79 +10,59 @@ print_r($fields);
 $output = fopen(OUTPUT_FILE, 'w');
 fputcsv($output, $fields);
 
-$falseCounts = array();
-$falseISSNs = array('0000-0000', '9999-9999');
-foreach ($falseISSNs as $falseISSN) {
-	$falseCounts[$falseISSN] = array(
-		'DOIs (total)' => crossref_count($falseISSN),
-		'DOIs (2012)' => crossref_count($falseISSN, 2012),
-	);
-}
-
-print_r($falseCounts);
+$fake = array(
+	'0000-0000' => true,
+	'7777-8888' => true,
+	'9999-9999' => true,
+);
 
 $seen = array();
 
 while (($line = fgetcsv($input)) !== false) {
 	$data = array_combine($fields, $line);
 
-	$issns = explode('|', $data['ISSN']);
-	$newIssns = array();
+	// remove false DOIs
+	foreach (array('ISSN', 'ISSN2') as $field) {
+		$issn = $data[$field];
 
-    // same DOI twice on the same row
-	if (isset($issns[1])) {
-		if ($issns[1] == $issns[0]) {
-			$data['DOIs (total)'] = $data['DOIs (total)'] / 2;
-			$data['DOIs (2012)'] = $data['DOIs (2012)'] / 2;
-			unset($issns[1]);
+		if (array_key_exists($issn, $fake)) {
+			unset($data[$field]);
 		}
 	}
 
-	// false DOI
-	foreach ($issns as $issn) {
-		if (array_key_exists($issn, $falseCounts)) {
-			print_r($data);
-			$data['DOIs (total)'] -= $falseCounts[$issn]['DOIs (total)'];
-			$data['DOIs (2012)'] -= $falseCounts[$issn]['DOIs (2012)'];
-			print_r($data);
-		} else {
-			$newIssns[] = $issn;
-			$seen[$issn][] = sprintf('%s (%d)', $data['Journal'], $data['DOIs (total)']);
-		}
+	if (!$data['ISSN']) {
+		continue;
 	}
 
-	$data['ISSN'] = implode('|', $newIssns);
+	if (array_key_exists($data['ISSN'], $seen)) {
+		print 'Seen ' . $data['ISSN'] . ' already';
+
+		$previous = $seen[$data['ISSN']];
+
+		if ($previous && $data['ISSN2'] && $previous != $data['ISSN2']) {
+			print ' with ' . $previous;
+		}
+
+		print "\n";
+	}
+
+	$seen[$data['ISSN']] = $data['ISSN2'];
+
+	if ($data['ISSN2']) {
+		if (array_key_exists($data['ISSN2'], $seen)) {
+			print 'Seen ' . $data['ISSN2'] . ' already';
+
+			$previous = $seen[$data['ISSN2']];
+
+			if ($previous && $data['ISSN'] && $previous != $data['ISSN']) {
+				print ' with ' . $previous;
+			}
+
+			print "\n";
+		}
+
+		$seen[$data['ISSN2']] = $data['ISSN'];
+	}
 
 	fputcsv($output, $data);
-}
-
-$seen = array_filter($seen, function($titles) {
-	return count($titles) > 1;
-});
-
-asort($seen);
-print_r($seen);
-
-function crossref_count($issn, $year = null) {
-	$params = array(
-		'q' => $issn,
-		'year' => $year,
-		'type' => 'Journal Article',
-		'header' => 'true',
-		'rows' => 0,
-	);
-
-	$url = 'http://search.labs.crossref.org/dois?' . http_build_query($params);
-	print "$url\n";
-
-	$context = stream_context_create(array('http' => array('timeout' => 10)));
-	$result = json_decode(file_get_contents($url, false, $context));
-	//$result = json_decode(file_get_contents($url));
-
-	if (!isset($result->totalResults)) {
-		$message = sprintf('%s: No totalResults for %s (%d)', date(DATE_ATOM), $issn, $year);
-		file_put_contents('counts.log', $message, FILE_APPEND);
-	}
-
-	return $result->totalResults;
 }

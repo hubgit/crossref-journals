@@ -7,7 +7,7 @@ $input = fopen(INPUT_FILE, 'r');
 fgetcsv($input); // header row
 
 $output = fopen(OUTPUT_FILE, 'w');
-fputcsv($output, array('ISSN', 'DOIs (total)', 'DOIs (2012)', 'Journal', 'Publisher'));
+fputcsv($output, array('ISSN', 'ISSN2', 'DOIs (total)', 'DOIs (2012)', 'Journal', 'Publisher'));
 
 while (($line = fgetcsv($input)) !== false) {
 	list($title, $publisher, $subjects, $issns) = $line;
@@ -20,18 +20,16 @@ while (($line = fgetcsv($input)) !== false) {
 
 	print_r($issns);
 
+	$issn = $issns[0];
+
 	$data = array(
-		'issn' => implode('|', $issns),
-		'dois-total' => 0,
-		'dois-2012' => 0,
-		'title' => trim($title),
+		'issn' => $issn,
+		'issn2' => $issns[1],
+		'dois-total' => crossref_count($issn),
+		'dois-2012' => crossref_count($issn, 2012),
+		'title' => trim(str_replace('\\"', '', $title)),
 		'publisher' => trim($publisher),
 	);
-
-	foreach ($issns as $issn) {
-		$data['dois-total'] += crossref_count($issn);
-		$data['dois-2012'] += crossref_count($issn, 2012);
-	}
 
 	fputcsv($output, $data);
 }
