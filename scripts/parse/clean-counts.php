@@ -27,7 +27,7 @@ while (($line = fgetcsv($input)) !== false) {
 		$issn = $data[$field];
 
 		if (array_key_exists($issn, $fake)) {
-			unset($data[$field]);
+			$data[$field] = null;
 		}
 	}
 
@@ -46,7 +46,7 @@ while (($line = fgetcsv($input)) !== false) {
 			$seen[$issn]['Publisher'] .= "\n" . $data['Publisher'];
 		}
 
-		if ($data['ISSN2']) {
+		if ($data['ISSN2'] && $data['ISSN2'] != $seen[$issn]['ISSN2']) {
 			$seen[$issn]['ISSN2'] .= "\n" . $data['ISSN2'];
 		}
 
