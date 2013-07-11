@@ -12,6 +12,7 @@ fputcsv($output, $fields);
 
 $fake = array(
 	'0000-0000' => true,
+	'1234-5678' => true,
 	'7777-8888' => true,
 	'9999-9999' => true,
 );
@@ -30,39 +31,37 @@ while (($line = fgetcsv($input)) !== false) {
 		}
 	}
 
-	if (!$data['ISSN']) {
+	$issn = $data['ISSN'];
+
+	if (!$issn) {
 		continue;
 	}
 
-	if (array_key_exists($data['ISSN'], $seen)) {
-		print 'Seen ' . $data['ISSN'] . ' already';
-
-		$previous = $seen[$data['ISSN']];
-
-		if ($previous && $data['ISSN2'] && $previous != $data['ISSN2']) {
-			print ' with ' . $previous;
+	if (array_key_exists($issn, $seen)) {
+		if ($data['Journal'] && $data['Journal'] != $seen[$issn]['Journal']) {
+			$seen[$issn]['Journal'] .= "\n" . $data['Journal'];
 		}
 
-		print "\n";
-	}
-
-	$seen[$data['ISSN']] = $data['ISSN2'];
-
-	if ($data['ISSN2']) {
-		if (array_key_exists($data['ISSN2'], $seen)) {
-			print 'Seen ' . $data['ISSN2'] . ' already';
-
-			$previous = $seen[$data['ISSN2']];
-
-			if ($previous && $data['ISSN'] && $previous != $data['ISSN']) {
-				print ' with ' . $previous;
-			}
-
-			print "\n";
+		if ($data['Publisher'] && $data['Publisher'] != $seen[$issn]['Publisher']) {
+			$seen[$issn]['Publisher'] .= "\n" . $data['Publisher'];
 		}
 
-		$seen[$data['ISSN2']] = $data['ISSN'];
-	}
+		if ($data['ISSN2']) {
+			$seen[$issn]['ISSN2'] .= "\n" . $data['ISSN2'];
+		}
 
+		if ($data['DOIs (total)'] > $seen[$issn]['DOIs (total)']) {
+			$seen[$issn]['DOIs (total)'] = $data['DOIs (total)'];
+		}
+
+		if ($data['DOIs (2012)'] > $seen[$issn]['DOIs (2012)']) {
+			$seen[$issn]['DOIs (2012)'] = $data['DOIs (2012)'];
+		}
+	} else {
+		$seen[$issn] = $data;
+	}
+}
+
+foreach ($seen as $issn => $data) {
 	fputcsv($output, $data);
 }
